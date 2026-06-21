@@ -82,10 +82,11 @@ export async function middleware(request: NextRequest) {
 
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://checkout.razorpay.com https://media.ethicalads.io;
     style-src 'self' 'unsafe-inline';
-    img-src 'self' data: https://*.supabase.co;
-    connect-src 'self' https://*.supabase.co wss://*.supabase.co;
+    img-src 'self' data: https://*.supabase.co https://*.ethicalads.io https://media.ethicalads.io;
+    connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.razorpay.com;
+    frame-src 'self' https://checkout.razorpay.com;
     font-src 'self' data:;
     object-src 'none';
     base-uri 'self';
