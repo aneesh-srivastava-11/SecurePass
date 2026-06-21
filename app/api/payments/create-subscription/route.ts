@@ -53,21 +53,6 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('Subscription Creation Error:', error);
     const description = error.error?.description || error.description || error.message || 'Failed to create subscription';
-    
-    const rawKeyId = process.env.RAZORPAY_KEY_ID || '';
-    const rawKeySecret = process.env.RAZORPAY_KEY_SECRET || '';
-    
-    const debug = {
-      keyIdLength: rawKeyId.length,
-      keyIdPrefix: rawKeyId.substring(0, 10),
-      keySecretLength: rawKeySecret.length,
-      keySecretPrefix: rawKeySecret.substring(0, 4),
-      keySecretSuffix: rawKeySecret.length > 4 ? rawKeySecret.substring(rawKeySecret.length - 4) : '',
-    };
-
-    return NextResponse.json({ 
-      error: description, 
-      debug 
-    }, { status: 500 });
+    return NextResponse.json({ error: description }, { status: 500 });
   }
 }
