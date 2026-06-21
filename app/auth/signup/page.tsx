@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FolderLock } from 'lucide-react';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -111,80 +112,83 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center p-6 bg-slate-950 relative overflow-hidden">
+    <div className="flex-1 flex items-center justify-center p-6 bg-zinc-950 min-h-screen relative overflow-hidden font-sans">
       {/* Background decoration */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
       
-      <Card className="w-full max-w-md border-slate-800 bg-slate-900/60 backdrop-blur-xl relative z-10">
+      <Card className="w-full max-w-md border-zinc-900 bg-zinc-950 relative z-10 rounded-xl">
         {signupStep === 'form' ? (
           <form onSubmit={handleSignup}>
-            <CardHeader className="space-y-1">
+            <CardHeader className="space-y-2">
               <div className="flex items-center space-x-2">
-                <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                <div className="p-1 bg-cyan-500/10 text-cyan-400 rounded border border-cyan-500/20">
+                  <FolderLock className="h-4.5 w-4.5" />
+                </div>
+                <span className="text-sm font-bold text-zinc-100">
                   SecurePass
                 </span>
-                <span className="text-xs text-cyan-400 border border-cyan-400/30 px-1.5 py-0.5 rounded font-mono">
-                  ZERO-TRUST
+                <span className="text-[9px] text-zinc-500 border border-zinc-800 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">
+                  Zero-Trust
                 </span>
               </div>
-              <CardTitle className="text-xl mt-4">Create your team account</CardTitle>
-              <CardDescription>
-                Secrets are encrypted locally on your device.
+              <CardTitle className="text-lg font-bold tracking-tight pt-2">Create team account</CardTitle>
+              <CardDescription className="text-zinc-500 text-xs">
+                All credentials are encrypted locally on your machine before database storage.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email address</Label>
+                <Label htmlFor="email" className="text-xs text-zinc-400">Email address</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-slate-100 placeholder:text-slate-600 focus-visible:ring-cyan-500"
+                  className="bg-zinc-900 border-zinc-800 text-zinc-200 placeholder:text-zinc-650 focus-visible:ring-cyan-500 text-xs rounded-lg"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Login Password</Label>
+                <Label htmlFor="password" className="text-xs text-zinc-400">Login Password</Label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-slate-100 placeholder:text-slate-600 focus-visible:ring-cyan-500"
+                  className="bg-zinc-900 border-zinc-800 text-zinc-200 placeholder:text-zinc-650 focus-visible:ring-cyan-500 text-xs rounded-lg"
                   required
                 />
               </div>
-              <div className="space-y-2 pt-2 border-t border-slate-800/60">
+              <div className="space-y-2 pt-3 border-t border-zinc-900">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="passphrase" className="text-slate-200">Vault Passphrase</Label>
-                  <span className="text-[10px] text-cyan-400 font-mono">ENCRYPTION KEY</span>
+                  <Label htmlFor="passphrase" className="text-xs text-zinc-300">Vault Passphrase</Label>
+                  <span className="text-[9px] text-cyan-500 font-mono tracking-wide uppercase">Browser Key Encryption</span>
                 </div>
                 <Input
                   id="passphrase"
                   type="password"
-                  placeholder="At least 8 characters (different from password)"
+                  placeholder="Minimum 8 characters (different from password)"
                   value={passphrase}
                   onChange={(e) => setPassphrase(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-slate-100 placeholder:text-slate-600 focus-visible:ring-cyan-500"
+                  className="bg-zinc-900 border-zinc-800 text-zinc-200 placeholder:text-zinc-600 focus-visible:ring-cyan-500 text-xs rounded-lg"
                   required
                 />
-                <p className="text-[11px] text-slate-400 leading-relaxed pt-1">
-                  ⚠️ This passphrase encrypts your private key. We never see this, and if you forget it, you will lose access to your backup.
+                <p className="text-[10px] text-zinc-500 leading-relaxed pt-1.5">
+                  ⚠️ This passphrase encrypts your local P-256 private key. We never see or store this, and if you lose it, your backup is unrecoverable.
                 </p>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-slate-950 font-semibold"
+                className="w-full bg-cyan-500 hover:bg-cyan-600 text-zinc-950 font-semibold text-xs h-10 rounded-lg transition-colors"
                 disabled={isLoading}
               >
-                {isLoading ? 'Creating account...' : 'Sign Up & Generate Keys'}
+                {isLoading ? 'Generating Keys...' : 'Sign Up & Generate Keypair'}
               </Button>
-              <div className="text-sm text-slate-400 text-center">
+              <div className="text-xs text-zinc-500 text-center">
                 Already have an account?{' '}
                 <Link href="/auth/login" className="text-cyan-400 hover:underline">
                   Log in
@@ -195,34 +199,37 @@ export default function SignupPage() {
         ) : (
           <div className="p-6 text-center space-y-6">
             <CardHeader className="p-0">
-              <div className="mx-auto w-12 h-12 bg-cyan-500/10 text-cyan-400 rounded-full flex items-center justify-center text-2xl">
+              <div className="mx-auto w-10 h-10 bg-cyan-500/10 text-cyan-400 rounded-full flex items-center justify-center text-lg border border-cyan-500/20">
                 🔑
               </div>
-              <CardTitle className="text-xl mt-4">Save Your Vault Backup</CardTitle>
-              <CardDescription className="text-slate-300">
-                Your private vault key is stored securely in this browser's IndexedDB. To log in on another device or restore your vault, you will need this backup file and your Vault Passphrase.
+              <CardTitle className="text-lg font-bold mt-4 tracking-tight">Save Cryptographic Backup</CardTitle>
+              <CardDescription className="text-zinc-400 text-xs leading-relaxed">
+                Your vault private key is stored inside IndexedDB. You will need this backup file to recover your keys if you clear cookies or use a new device.
               </CardDescription>
             </CardHeader>
-            <div className="bg-slate-950 border border-slate-800 p-4 rounded text-left font-mono text-xs overflow-x-auto text-slate-400">
+            <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg text-left font-mono text-[10px] overflow-x-auto text-zinc-500 max-h-[100px]">
               {JSON.stringify({
-                publicKey: backupData.publicKey.substring(0, 30) + '...',
-                salt: backupData.salt.substring(0, 15) + '...',
-                ciphertext: 'ENCRYPTED_PRIVATE_KEY_BYTES'
+                publicKey: backupData?.publicKey?.substring(0, 30) + '...',
+                salt: backupData?.salt?.substring(0, 15) + '...',
+                ciphertext: 'AES_GCM_ENCRYPTED_PRIVATE_KEY_PAYLOAD'
               }, null, 2)}
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 pt-2">
               <Button 
                 onClick={downloadBackup}
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-slate-950 font-semibold"
+                className="w-full bg-cyan-500 hover:bg-cyan-600 text-zinc-950 font-semibold text-xs h-10 rounded-lg transition-colors"
               >
-                Download Backup File
+                Download Backup JSON
               </Button>
               <Button 
                 variant="link" 
-                onClick={() => router.push('/dashboard')}
-                className="text-slate-400 hover:text-slate-300"
+                onClick={() => {
+                  router.push('/dashboard');
+                  router.refresh();
+                }}
+                className="text-zinc-500 hover:text-zinc-400 text-xs"
               >
-                Skip download (Not recommended)
+                Skip (not recommended)
               </Button>
             </div>
           </div>

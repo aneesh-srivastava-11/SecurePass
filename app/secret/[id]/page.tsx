@@ -7,7 +7,21 @@ import { createClient } from '@/lib/supabase/client';
 import { decryptSecret, hasKeypair } from '@/lib/crypto';
 import { toast } from 'sonner';
 
-import { ArrowLeft, Key, Eye, EyeOff, ShieldAlert, Calendar, User, Users, Trash2, Clock, ListChecks } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Key, 
+  EyeOff, 
+  ShieldAlert, 
+  Calendar, 
+  User, 
+  Users, 
+  Trash2, 
+  Clock, 
+  ListChecks, 
+  FolderLock,
+  Copy
+} from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -205,9 +219,9 @@ export default function SecretDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-950 text-slate-400">
-        <Clock className="h-8 w-8 text-cyan-400 animate-spin mb-3" />
-        <div className="text-sm font-mono tracking-widest text-slate-500">LOADING VAULT SECRETS...</div>
+      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-zinc-950 text-zinc-400 min-h-screen font-mono">
+        <Clock className="h-6 w-6 text-cyan-400 animate-pulse mb-3" />
+        <div className="text-xs tracking-widest text-zinc-500">DECRYPTING SECRETS...</div>
       </div>
     );
   }
@@ -217,50 +231,57 @@ export default function SecretDetailPage() {
   const isOwner = secret.owner_id === user?.id;
 
   return (
-    <div className="flex-1 bg-slate-950 relative overflow-hidden flex flex-col">
-      {/* Background decoration */}
-      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
-
-      {/* Header */}
-      <header className="border-b border-slate-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center space-x-4">
-          <Link href="/dashboard" className="text-slate-400 hover:text-slate-200 p-1.5 hover:bg-slate-900 rounded-lg">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-          <span className="text-sm font-semibold text-slate-300">Back to Dashboard</span>
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans antialiased">
+      
+      {/* Top sticky header */}
+      <header className="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-[900px] mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Link href="/dashboard" className="text-zinc-400 hover:text-zinc-200 p-1.5 hover:bg-zinc-900 rounded-lg transition-colors">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <span className="text-xs font-medium text-zinc-400 font-mono">Back to Dashboard</span>
+          </div>
+          <div className="flex items-center space-x-2.5">
+            <div className="p-1 bg-cyan-500/10 text-cyan-400 rounded border border-cyan-500/20">
+              <FolderLock className="h-4 w-4" />
+            </div>
+            <span className="font-bold tracking-tight text-xs text-zinc-300">SecurePass Vault</span>
+          </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 relative z-10 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-900">
+      {/* Main Content Area */}
+      <main className="flex-grow max-w-[900px] w-full mx-auto px-6 py-10 space-y-6">
+        
+        {/* Secret Title Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-900">
           <div className="space-y-1.5">
             <div className="flex items-center space-x-2.5">
-              <h1 className="text-2xl font-bold text-slate-100">{secret.name}</h1>
+              <h1 className="text-xl font-bold tracking-tight text-zinc-100">{secret.name}</h1>
               {isOwner ? (
-                <Badge variant="outline" className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[10px]">
+                <Badge variant="outline" className="bg-cyan-500/5 text-cyan-400 border border-cyan-500/15 text-[9px] uppercase tracking-wider font-mono">
                   Owner
                 </Badge>
               ) : (
-                <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px]">
-                  Shared
+                <Badge variant="secondary" className="bg-blue-500/5 text-blue-400 border border-blue-500/15 text-[9px] uppercase tracking-wider font-mono">
+                  Shared Access
                 </Badge>
               )}
             </div>
-            <div className="text-xs text-slate-400 flex items-center gap-4">
-              <span className="flex items-center"><Calendar className="h-3.5 w-3.5 mr-1" /> {new Date(secret.created_at).toLocaleDateString()}</span>
+            <div className="text-xs text-zinc-500 flex flex-wrap gap-x-4 gap-y-1">
+              <span className="flex items-center"><Calendar className="h-3.5 w-3.5 mr-1" /> Created: {new Date(secret.created_at).toLocaleDateString()}</span>
               {!isOwner && <span className="flex items-center"><User className="h-3.5 w-3.5 mr-1" /> Owner: {secret.owner_email}</span>}
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             {isOwner && (
               <>
                 <Link href={`/audit-log?secretId=${secretId}`}>
-                  <Button variant="outline" className="border-slate-800 hover:bg-slate-800 text-slate-300">
-                    <ListChecks className="h-4 w-4 mr-2" />
-                    Audit Log
+                  <Button variant="outline" className="border-zinc-800 hover:bg-zinc-900 text-zinc-300 text-xs h-9 rounded-lg transition-colors">
+                    <ListChecks className="h-4 w-4 mr-1.5" />
+                    Audit Trail
                   </Button>
                 </Link>
                 <ShareModal 
@@ -274,40 +295,43 @@ export default function SecretDetailPage() {
           </div>
         </div>
 
-        {/* Decryption Card */}
-        <Card className="border-slate-800 bg-slate-900/60 backdrop-blur-xl">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-mono text-slate-400">ENCRYPTED VALUE</CardTitle>
-            <CardDescription className="text-xs text-slate-500">
-              Plaintext is decrypted dynamically in-memory using Web Crypto API. It is never sent to the server.
+        {/* Decryption Core Panel */}
+        <Card className="border-zinc-900 bg-zinc-950 rounded-xl overflow-hidden">
+          <CardHeader className="pb-3 border-b border-zinc-900">
+            <CardTitle className="text-xs font-mono tracking-wider uppercase text-zinc-500">Local Ciphertext Verification</CardTitle>
+            <CardDescription className="text-xs text-zinc-400 leading-relaxed">
+              Plaintext values are strictly decrypted inside your sandboxed browser environment. Cleartext keys are never sent to the network.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-6 space-y-4">
             {!showPlaintext ? (
-              <div className="flex flex-col items-center justify-center py-6 bg-slate-950/60 border border-slate-800/80 rounded-lg gap-3">
-                <div className="text-[10px] font-mono text-slate-600 truncate max-w-md w-full px-4 text-center">
-                  Ciphertext: {secret.encrypted_blob.ciphertext.substring(0, 40)}...
+              <div className="flex flex-col items-center justify-center py-8 bg-zinc-900/10 border border-zinc-900 rounded-lg gap-4">
+                <div className="text-[10px] font-mono text-zinc-600 truncate max-w-lg w-full px-6 text-center select-all">
+                  ECIES Ciphertext: {secret.encrypted_blob.ciphertext}
                 </div>
                 <Button
                   onClick={handleDecrypt}
                   disabled={isDecrypting || !hasKey}
-                  className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-semibold text-xs h-9 px-4"
+                  className="bg-cyan-500 hover:bg-cyan-600 text-zinc-950 font-semibold text-xs h-9 px-5 rounded-lg transition-colors"
                 >
                   <Key className="h-3.5 w-3.5 mr-1.5" />
                   {isDecrypting ? 'Decrypting locally...' : 'Decrypt Secret'}
                 </Button>
                 {!hasKey && (
                   <p className="text-[10px] text-amber-500 flex items-center">
-                    <ShieldAlert className="h-3.5 w-3.5 mr-1" />
-                    Import your backup vault key to decrypt.
+                    <ShieldAlert className="h-3.5 w-3.5 mr-1.5 animate-pulse" />
+                    Import your vault passphrase backup to perform decryption.
                   </p>
                 )}
               </div>
             ) : (
-              <div className="flex gap-2">
-                <div className="flex-1 bg-slate-950 border border-slate-800 px-4 py-3 rounded-lg font-mono text-sm text-cyan-400 break-all select-all flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-zinc-900/50 border border-zinc-800 px-4 py-3 rounded-lg font-mono text-sm text-cyan-400 break-all select-all flex items-center justify-between">
                   <span>{plaintext}</span>
-                  <button onClick={() => setShowPlaintext(false)} className="text-slate-500 hover:text-slate-300 ml-2">
+                  <button 
+                    onClick={() => setShowPlaintext(false)} 
+                    className="text-zinc-500 hover:text-zinc-300 p-1 hover:bg-zinc-800 rounded transition-colors"
+                  >
                     <EyeOff className="h-4 w-4" />
                   </button>
                 </div>
@@ -317,40 +341,39 @@ export default function SecretDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Share Management Section (Owner Only) */}
+        {/* Access Permissions Management (Owner Only) */}
         {isOwner && (
-          <Card className="border-slate-800 bg-slate-900/60 backdrop-blur-xl">
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold text-slate-300 flex items-center">
-                <Users className="h-4.5 w-4.5 mr-1.5 text-cyan-400" />
+          <Card className="border-zinc-900 bg-zinc-950 rounded-xl overflow-hidden">
+            <CardHeader className="pb-3 border-b border-zinc-900">
+              <CardTitle className="text-xs font-mono tracking-wider uppercase text-zinc-500">
                 Access Permissions ({shares.length})
               </CardTitle>
-              <CardDescription className="text-xs text-slate-400">
-                Manage who has cryptographic access to this secret. Revoking delete's their unique ECIES shared key.
+              <CardDescription className="text-xs text-zinc-400">
+                Grant or revoke cryptographic shared permissions for this secret.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               {shares.length === 0 ? (
-                <div className="text-center py-4 text-slate-500 text-xs">
-                  This secret is not shared with anyone yet.
+                <div className="text-center py-6 text-zinc-500 text-xs">
+                  This secret is currently isolated. No team members have shared access.
                 </div>
               ) : (
-                <div className="divide-y divide-slate-800/60">
+                <div className="divide-y divide-zinc-900">
                   {shares.map((share) => (
                     <div key={share.id} className="py-3 flex justify-between items-center first:pt-0 last:pb-0">
                       <div className="space-y-0.5">
-                        <div className="text-sm font-medium text-slate-300">{share.users?.email}</div>
-                        <div className="text-[10px] text-slate-500 font-mono">
-                          Shared: {new Date(share.created_at).toLocaleDateString()}
+                        <div className="text-xs font-semibold text-zinc-300">{share.users?.email}</div>
+                        <div className="text-[10px] text-zinc-500 font-mono">
+                          Shared on: {new Date(share.created_at).toLocaleDateString()}
                         </div>
                       </div>
                       <Button
                         onClick={() => handleRevokeShare(share.user_id, share.users?.email)}
                         disabled={isActionLoading}
                         variant="ghost"
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs h-8 px-2.5"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs h-8 px-2.5 rounded-lg transition-colors"
                       >
-                        <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                        <Trash2 className="h-3.5 w-3.5 mr-1" />
                         Revoke Access
                       </Button>
                     </div>
@@ -361,27 +384,28 @@ export default function SecretDetailPage() {
           </Card>
         )}
 
-        {/* Danger Zone */}
+        {/* Danger Zone Controls (Owner Only) */}
         {isOwner && (
           <div className="pt-4">
-            <Separator className="bg-slate-900 mb-6" />
-            <div className="flex justify-between items-center p-4 border border-red-500/20 bg-red-500/5 rounded-xl">
+            <Separator className="bg-zinc-900 mb-6" />
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 border border-red-900/30 bg-red-950/10 rounded-xl gap-4">
               <div>
-                <h4 className="text-sm font-semibold text-red-400">Delete Secret</h4>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Permanently delete this secret and revoke all active team shares. This action is irreversible.
+                <h4 className="text-sm font-semibold text-red-400">Delete Vault Item</h4>
+                <p className="text-xs text-zinc-500 mt-1 leading-relaxed max-w-md">
+                  Permanently delete this secret and destroy all active shared cryptographic user keys. This operation cannot be undone.
                 </p>
               </div>
               <Button
                 onClick={handleDeleteSecret}
                 disabled={isActionLoading}
-                className="bg-red-500/10 border border-red-500/30 hover:bg-red-500 hover:text-slate-950 text-red-400 font-semibold text-xs"
+                className="bg-red-500/10 border border-red-500/30 hover:bg-red-500 hover:text-zinc-950 text-red-400 font-semibold text-xs h-9 px-4 rounded-lg transition-all"
               >
-                Delete Vault Secret
+                Delete Secret
               </Button>
             </div>
           </div>
         )}
+        
       </main>
     </div>
   );

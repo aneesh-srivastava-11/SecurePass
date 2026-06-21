@@ -7,7 +7,19 @@ import { verifyAuditEntry } from '@/lib/verify';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
-import { ArrowLeft, ShieldCheck, ShieldAlert, Clock, RefreshCw, Download, Server, Terminal, Activity } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  ShieldCheck, 
+  ShieldAlert, 
+  Clock, 
+  Download, 
+  Server, 
+  Terminal, 
+  Activity, 
+  FolderLock,
+  ChevronRight
+} from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -112,180 +124,166 @@ function AuditLogContent() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-950 text-slate-400">
-        <Activity className="h-8 w-8 text-cyan-400 animate-pulse mb-3" />
-        <div className="text-sm font-mono tracking-widest text-slate-500">RESOLVING AUDIT TIMELINE...</div>
+      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-zinc-950 text-zinc-400 min-h-screen font-mono">
+        <Activity className="h-6 w-6 text-cyan-400 animate-pulse mb-3" />
+        <div className="text-xs tracking-widest text-zinc-500">RESOLVING AUDIT TIMELINE...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 bg-slate-950 relative overflow-hidden flex flex-col">
-      {/* Background decoration */}
-      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
-
-      {/* Header */}
-      <header className="border-b border-slate-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href={`/secret/${secretId}`} className="text-slate-400 hover:text-slate-200 p-1.5 hover:bg-slate-900 rounded-lg">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans antialiased">
+      
+      {/* Top sticky header */}
+      <header className="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-[900px] mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Link href={`/secret/${secretId}`} className="text-zinc-400 hover:text-zinc-200 p-1.5 hover:bg-zinc-900 rounded-lg transition-colors">
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <span className="text-sm font-semibold text-slate-300">Back to Secret</span>
+            <span className="text-xs font-medium text-zinc-400 font-mono">Back to Secret</span>
           </div>
-          <Button onClick={downloadLogs} variant="outline" className="border-slate-800 hover:bg-slate-800 text-slate-300 text-xs">
+          
+          <Button onClick={downloadLogs} variant="outline" className="border-zinc-800 hover:bg-zinc-900 text-zinc-300 text-xs h-8.5 rounded-lg transition-colors">
             <Download className="h-3.5 w-3.5 mr-1.5" />
             Export Log
           </Button>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 relative z-10 space-y-6">
+      {/* Main Content Area */}
+      <main className="flex-grow max-w-[900px] w-full mx-auto px-6 py-10 space-y-6">
+        
         {/* Title */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-900">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-100 flex items-center">
-              Cryptographic Audit Log
-            </h1>
-            <p className="text-xs text-slate-400 mt-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-900">
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-zinc-100">Cryptographic Audit trail</h1>
+            <p className="text-xs text-zinc-500">
               Secret: <span className="font-mono text-cyan-400">{secret?.name}</span>
             </p>
           </div>
+          
           <Button
             onClick={handleVerifyAll}
             disabled={isVerifying || logs.length === 0}
-            className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-semibold text-xs"
+            className="bg-cyan-500 hover:bg-cyan-600 text-zinc-950 font-semibold text-xs h-9 px-4 rounded-lg transition-colors"
           >
             <ShieldCheck className="h-4 w-4 mr-1.5" />
-            {isVerifying ? 'Verifying...' : 'Verify All Signatures'}
+            {isVerifying ? 'Verifying...' : 'Verify Signatures'}
           </Button>
         </div>
 
         {/* Server Public Key Banner */}
-        <Card className="border-slate-800 bg-slate-900/30 backdrop-blur-md">
-          <CardHeader className="p-4">
-            <CardTitle className="text-xs font-semibold text-slate-300 flex items-center">
+        <Card className="border-zinc-900 bg-zinc-950 rounded-xl overflow-hidden">
+          <CardHeader className="p-5">
+            <CardTitle className="text-xs font-mono tracking-wider uppercase text-zinc-500 flex items-center">
               <Server className="h-4 w-4 mr-1.5 text-cyan-400" />
-              Server Audit Verification Public Key (Ed25519)
+              Server Signature Public Key (Ed25519)
             </CardTitle>
-            <CardDescription className="text-[10px] text-slate-500 font-mono break-all mt-1 bg-slate-950 p-2 border border-slate-900 rounded select-all">
-              {serverPublicKey || 'Loading key...'}
+            <CardDescription className="text-[10px] text-zinc-500 font-mono break-all mt-2 bg-zinc-900/40 p-2.5 border border-zinc-900 rounded-lg select-all">
+              {serverPublicKey || 'Loading public key...'}
             </CardDescription>
           </CardHeader>
         </Card>
 
-        {/* Audit Log Timeline */}
+        {/* Audit Log Timeline list */}
         <div className="space-y-4">
           {logs.length === 0 ? (
-            <div className="text-center p-8 bg-slate-900/20 border border-slate-900 border-dashed rounded-xl text-slate-500 text-sm">
+            <div className="text-center py-10 bg-zinc-900/10 border border-zinc-900 border-dashed rounded-xl text-zinc-500 text-xs">
               No audit entries found for this secret.
             </div>
           ) : (
-            <div className="relative pl-6 border-l border-slate-900 space-y-6">
+            <div className="space-y-4">
               {logs.map((log) => {
                 const isVerified = verificationMap[log.id];
                 const hasSignature = !!log.signature;
 
                 return (
-                  <div key={log.id} className="relative">
-                    {/* Circle icon on line */}
-                    <div className="absolute -left-[31px] top-1.5 w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center">
-                      <div className={`w-1 h-1 rounded-full ${
-                        log.action === 'created' ? 'bg-cyan-400' :
-                        log.action === 'shared' ? 'bg-blue-400' :
-                        log.action === 'revoked' ? 'bg-red-400' :
-                        'bg-slate-400'
-                      }`} />
-                    </div>
-
-                    <Card className="border-slate-800 bg-slate-900/40 backdrop-blur-md">
-                      <CardContent className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center space-x-2">
-                            <Badge 
-                              className={`text-[9px] uppercase font-mono tracking-wider ${
-                                log.action === 'created' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' :
-                                log.action === 'shared' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
-                                log.action === 'revoked' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
-                                'bg-slate-800 text-slate-400'
-                              }`}
-                            >
-                              {log.action}
-                            </Badge>
-                            <span className="text-xs text-slate-500 font-mono flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {new Date(log.created_at).toLocaleString()}
-                            </span>
-                          </div>
-
-                          <p className="text-sm font-medium text-slate-300">
-                            {log.actor_email}{' '}
-                            {log.action === 'created' && 'created this secret.'}
-                            {log.action === 'shared' && `shared access with ${log.target_email}.`}
-                            {log.action === 'revoked' && (log.target_email ? `revoked access for ${log.target_email}.` : 'revoked the secret itself.')}
-                            {log.action === 'accessed' && 'decrypted and accessed the plaintext.'}
-                          </p>
-
-                          <div className="text-[10px] text-slate-500 font-mono">
-                            Client IP: {log.ip_address || 'Unknown'}
-                          </div>
+                  <Card key={log.id} className="border-zinc-900 bg-zinc-950 rounded-xl overflow-hidden">
+                    <CardContent className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center space-x-2.5">
+                          <Badge 
+                            className={`text-[9px] uppercase font-mono tracking-wider px-1.5 py-0.5 rounded ${
+                              log.action === 'created' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/15' :
+                              log.action === 'shared' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/15' :
+                              log.action === 'revoked' ? 'bg-red-500/10 text-red-400 border border-red-500/15' :
+                              'bg-zinc-800 text-zinc-400 border border-zinc-700/60'
+                            }`}
+                          >
+                            {log.action}
+                          </Badge>
+                          <span className="text-xs text-zinc-500 font-mono flex items-center">
+                            <Clock className="h-3.5 w-3.5 mr-1" />
+                            {new Date(log.created_at).toLocaleString()}
+                          </span>
                         </div>
 
-                        {/* Signature Status */}
-                        {hasSignature ? (
-                          <div className="self-start md:self-center">
-                            {isVerified === undefined ? (
-                              <Badge variant="outline" className="border-slate-800 bg-slate-900 text-slate-500 text-[10px] font-mono flex items-center gap-1.5">
-                                <Terminal className="h-3 w-3" />
-                                Unverified
-                              </Badge>
-                            ) : isVerified ? (
-                              <Badge variant="outline" className="border-green-500/20 bg-green-500/10 text-green-400 text-[10px] font-mono flex items-center gap-1.5">
-                                <ShieldCheck className="h-3.5 w-3.5" />
-                                Signature Valid
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="border-red-500/20 bg-red-500/10 text-red-400 text-[10px] font-mono flex items-center gap-1.5">
-                                <ShieldAlert className="h-3.5 w-3.5 animate-bounce" />
-                                Sig Invalid / Tampered
-                              </Badge>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="self-start md:self-center">
-                            <Badge variant="outline" className="border-slate-900 bg-slate-950 text-slate-600 text-[10px] font-mono">
-                              No Signature Required
-                            </Badge>
-                          </div>
-                        )}
-                      </CardContent>
+                        <p className="text-sm font-medium text-zinc-300">
+                          {log.actor_email}{' '}
+                          {log.action === 'created' && 'created this secret.'}
+                          {log.action === 'shared' && `shared access with ${log.target_email}.`}
+                          {log.action === 'revoked' && (log.target_email ? `revoked access for ${log.target_email}.` : 'revoked the secret.')}
+                          {log.action === 'accessed' && 'decrypted and accessed the plaintext.'}
+                        </p>
 
-                      {/* Expandable signature details */}
-                      {hasSignature && (
-                        <div className="px-4 pb-4 border-t border-slate-900/40 pt-2 bg-slate-950/20">
-                          <details className="cursor-pointer group">
-                            <summary className="text-[10px] text-slate-500 font-mono hover:text-slate-400 transition-colors list-none flex items-center">
-                              <span className="mr-1 group-open:rotate-90 transition-transform">▶</span>
-                              View Cryptographic Commitment
-                            </summary>
-                            <div className="mt-2 space-y-2 text-[10px] font-mono text-slate-500 select-all border-l-2 border-slate-800 pl-2 py-1 leading-relaxed break-all">
-                              <div>Payload: {JSON.stringify({
-                                action: log.action,
-                                userId: log.user_id,
-                                secretId: log.secret_id,
-                                targetUserId: log.target_user_id,
-                                timestamp: log.created_at,
-                                ipAddress: log.ip_address
-                              })}</div>
-                              <div>Signature: {log.signature}</div>
-                            </div>
-                          </details>
+                        <div className="text-[10px] text-zinc-500 font-mono">
+                          Client IP Commit: {log.ip_address || 'Unknown'}
+                        </div>
+                      </div>
+
+                      {/* Signature Status badges */}
+                      {hasSignature ? (
+                        <div className="self-start md:self-center">
+                          {isVerified === undefined ? (
+                            <Badge variant="outline" className="border-zinc-800 bg-zinc-900/50 text-zinc-500 text-[10px] font-mono flex items-center gap-1.5 px-2 py-0.5">
+                              <Terminal className="h-3 w-3" />
+                              Unverified
+                            </Badge>
+                          ) : isVerified ? (
+                            <Badge variant="outline" className="border-green-500/15 bg-green-500/5 text-green-400 text-[10px] font-mono flex items-center gap-1.5 px-2 py-0.5">
+                              <ShieldCheck className="h-3.5 w-3.5" />
+                              Commitment Verified
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-red-500/15 bg-red-500/5 text-red-400 text-[10px] font-mono flex items-center gap-1.5 px-2 py-0.5 animate-bounce">
+                              <ShieldAlert className="h-3.5 w-3.5" />
+                              Invalid Commit
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="self-start md:self-center">
+                          <Badge variant="outline" className="border-zinc-900 bg-zinc-950 text-zinc-600 text-[10px] font-mono">
+                            No Commit Required
+                          </Badge>
                         </div>
                       )}
-                    </Card>
-                  </div>
+                    </CardContent>
+
+                    {/* Expandable commitment details */}
+                    {hasSignature && (
+                      <div className="px-5 pb-4 border-t border-zinc-900/40 pt-2.5 bg-zinc-950">
+                        <details className="cursor-pointer group">
+                          <summary className="text-[10px] text-zinc-500 font-mono hover:text-zinc-300 transition-colors list-none flex items-center">
+                            <span className="mr-1 group-open:rotate-90 transition-transform">▶</span>
+                            View Server Commitment Details
+                          </summary>
+                          <div className="mt-2.5 space-y-2 text-[10px] font-mono text-zinc-500 select-all border-l-2 border-zinc-800 pl-3 py-1.5 leading-relaxed break-all">
+                            <div>Payload: {JSON.stringify({
+                              action: log.action,
+                              userId: log.user_id,
+                              secretId: log.secret_id,
+                              targetUserId: log.target_user_id,
+                              timestamp: log.created_at,
+                              ipAddress: log.ip_address
+                            })}</div>
+                            <div>Signature: {log.signature}</div>
+                          </div>
+                        </details>
+                      </div>
+                    )}
+                  </Card>
                 );
               })}
             </div>
@@ -299,9 +297,9 @@ function AuditLogContent() {
 export default function AuditLogPage() {
   return (
     <Suspense fallback={
-      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-950 text-slate-400">
-        <Activity className="h-8 w-8 text-cyan-400 animate-pulse mb-3" />
-        <div className="text-sm font-mono tracking-widest text-slate-500">LOADING VAULT AUDIT...</div>
+      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-zinc-950 text-zinc-400 min-h-screen font-mono">
+        <Activity className="h-6 w-6 text-cyan-400 animate-pulse mb-3" />
+        <div className="text-xs tracking-widest text-zinc-500">LOADING VAULT AUDIT...</div>
       </div>
     }>
       <AuditLogContent />

@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FolderLock, ShieldAlert } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -107,49 +108,52 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center p-6 bg-slate-950 relative overflow-hidden">
+    <div className="flex-1 flex items-center justify-center p-6 bg-zinc-950 min-h-screen relative overflow-hidden font-sans">
       {/* Background decoration */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
 
-      <Card className="w-full max-w-md border-slate-800 bg-slate-900/60 backdrop-blur-xl relative z-10">
+      <Card className="w-full max-w-md border-zinc-900 bg-zinc-950 relative z-10 rounded-xl">
         {loginStep === 'form' ? (
           <form onSubmit={handleLogin}>
-            <CardHeader className="space-y-1">
+            <CardHeader className="space-y-2">
               <div className="flex items-center space-x-2">
-                <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                <div className="p-1 bg-cyan-500/10 text-cyan-400 rounded border border-cyan-500/20">
+                  <FolderLock className="h-4.5 w-4.5" />
+                </div>
+                <span className="text-sm font-bold text-zinc-100">
                   SecurePass
                 </span>
-                <span className="text-xs text-cyan-400 border border-cyan-400/30 px-1.5 py-0.5 rounded font-mono">
-                  ZERO-TRUST
+                <span className="text-[9px] text-zinc-500 border border-zinc-800 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">
+                  Zero-Knowledge
                 </span>
               </div>
-              <CardTitle className="text-xl mt-4">Welcome back</CardTitle>
-              <CardDescription>
-                Log in to decrypt and access your secrets.
+              <CardTitle className="text-lg font-bold tracking-tight pt-2">Welcome Back</CardTitle>
+              <CardDescription className="text-zinc-500 text-xs">
+                Log in to decrypt and access your zero-trust secrets.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email address</Label>
+                <Label htmlFor="email" className="text-xs text-zinc-400">Email address</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-slate-100 placeholder:text-slate-600 focus-visible:ring-cyan-500"
+                  className="bg-zinc-900 border-zinc-800 text-zinc-200 placeholder:text-zinc-650 focus-visible:ring-cyan-500 text-xs rounded-lg"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-xs text-zinc-400">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-slate-100 placeholder:text-slate-600 focus-visible:ring-cyan-500"
+                  className="bg-zinc-900 border-zinc-800 text-zinc-200 placeholder:text-zinc-655 focus-visible:ring-cyan-500 text-xs rounded-lg"
                   required
                 />
               </div>
@@ -157,12 +161,12 @@ export default function LoginPage() {
             <CardFooter className="flex flex-col space-y-4">
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-slate-950 font-semibold"
+                className="w-full bg-cyan-500 hover:bg-cyan-600 text-zinc-950 font-semibold text-xs h-10 rounded-lg transition-colors"
                 disabled={isLoading}
               >
                 {isLoading ? 'Logging in...' : 'Log In'}
               </Button>
-              <div className="text-sm text-slate-400 text-center">
+              <div className="text-xs text-zinc-500 text-center">
                 Don't have an account?{' '}
                 <Link href="/auth/signup" className="text-cyan-400 hover:underline">
                   Sign up
@@ -172,41 +176,44 @@ export default function LoginPage() {
           </form>
         ) : (
           <form onSubmit={handleRestore}>
-            <CardHeader className="space-y-1">
+            <CardHeader className="space-y-2">
               <div className="flex items-center space-x-2">
-                <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                <div className="p-1 bg-amber-500/10 text-amber-400 rounded border border-amber-500/20">
+                  <ShieldAlert className="h-4.5 w-4.5" />
+                </div>
+                <span className="text-sm font-bold text-zinc-100">
                   SecurePass
                 </span>
-                <span className="text-xs text-amber-400 border border-amber-400/30 px-1.5 py-0.5 rounded font-mono">
-                  RESTORE KEY
+                <span className="text-[9px] text-amber-500 border border-amber-500/25 px-1.5 py-0.5 rounded font-mono uppercase tracking-wider">
+                  Restore Key
                 </span>
               </div>
-              <CardTitle className="text-xl mt-4">Restore Vault Keypair</CardTitle>
-              <CardDescription>
-                You are logging in from a new browser or device. Upload your encrypted backup file to restore your local keys.
+              <CardTitle className="text-lg font-bold tracking-tight pt-2">Restore Vault Keypair</CardTitle>
+              <CardDescription className="text-zinc-500 text-xs leading-relaxed">
+                You are logging in from a new browser or device. Upload your encrypted backup file to restore your client-side private key.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="backupFile">Backup JSON File</Label>
+                <Label htmlFor="backupFile" className="text-xs text-zinc-400">Backup JSON File</Label>
                 <Input
                   id="backupFile"
                   type="file"
                   accept=".json"
                   onChange={handleFileUpload}
-                  className="bg-slate-950 border-slate-800 text-slate-100 file:bg-slate-900 file:text-slate-100 file:border-0 hover:file:bg-slate-800 cursor-pointer"
+                  className="bg-zinc-900 border-zinc-800 text-zinc-200 file:bg-zinc-800 file:text-zinc-200 file:border-0 hover:file:bg-zinc-700 cursor-pointer text-xs rounded-lg"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="passphrase">Vault Passphrase</Label>
+                <Label htmlFor="passphrase" className="text-xs text-zinc-400">Vault Passphrase</Label>
                 <Input
                   id="passphrase"
                   type="password"
                   placeholder="Enter passphrase used on signup"
                   value={passphrase}
                   onChange={(e) => setPassphrase(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-slate-100 placeholder:text-slate-600 focus-visible:ring-cyan-500"
+                  className="bg-zinc-900 border-zinc-800 text-zinc-200 placeholder:text-zinc-600 focus-visible:ring-cyan-500 text-xs rounded-lg"
                   required
                 />
               </div>
@@ -214,7 +221,7 @@ export default function LoginPage() {
             <CardFooter className="flex flex-col space-y-4">
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-semibold"
+                className="w-full bg-cyan-500 hover:bg-cyan-600 text-zinc-950 font-semibold text-xs h-10 rounded-lg transition-colors"
                 disabled={isLoading}
               >
                 {isLoading ? 'Restoring...' : 'Restore Key & Access Vault'}
@@ -222,7 +229,7 @@ export default function LoginPage() {
               <Button 
                 variant="ghost" 
                 onClick={() => setLoginStep('form')}
-                className="text-slate-400 hover:text-slate-300 hover:bg-slate-800/40"
+                className="text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/40 text-xs"
               >
                 Back to Login
               </Button>
