@@ -5,7 +5,7 @@ export interface UserProfile {
   email: string;
   public_key: string;
   created_at: string;
-  tier: 'free' | 'enterprise';
+  tier: 'free' | 'pro';
   seats: number;
   razorpay_customer_id?: string;
   razorpay_subscription_id?: string;

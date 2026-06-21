@@ -53,7 +53,7 @@ export async function POST(req: Request) {
         const { error } = await supabaseAdmin
           .from('users')
           .update({
-            tier: 'enterprise',
+            tier: 'pro',
             seats: quantity,
             razorpay_subscription_id: subscription.id,
             razorpay_customer_id: subscription.customer_id,
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
           .eq('id', userId);
 
         if (error) {
-          console.error('Failed to update user tier to enterprise:', error);
+          console.error('Failed to update user tier to pro:', error);
           return NextResponse.json({ error: 'Database update failed' }, { status: 500 });
         }
         break;

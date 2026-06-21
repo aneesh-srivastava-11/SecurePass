@@ -172,8 +172,7 @@ export default function DashboardPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          seats: seatsToBuy,
-          planId: 'plan_Enterprise_1',
+          planId: 'plan_Pro_1',
         }),
       });
 
@@ -187,8 +186,8 @@ export default function DashboardPage() {
       const options = {
         key: data.keyId,
         subscription_id: data.subscriptionId,
-        name: 'SecurePass Enterprise',
-        description: `Subscription for ${seatsToBuy} seats`,
+        name: 'SecurePass Pro',
+        description: 'Pro Tier Subscription (Single User License)',
         handler: async function (response: any) {
           toast.success('Subscription authorized successfully! Updating tier...', { duration: 5000 });
           setIsUpgradeOpen(false);
@@ -313,11 +312,11 @@ export default function DashboardPage() {
           <div className="flex items-center space-x-3">
             {profile && (
               <span className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded ${
-                profile.tier === 'enterprise' 
+                profile.tier === 'pro' 
                   ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' 
                   : 'bg-slate-800 text-slate-400 border border-slate-700'
               }`}>
-                {profile.tier} tier {profile.tier === 'enterprise' && `(${profile.seats} seats)`}
+                {profile.tier} tier
               </span>
             )}
             {profile?.tier === 'free' && (
@@ -379,7 +378,7 @@ export default function DashboardPage() {
                 size="sm"
                 className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-slate-950 font-semibold"
               >
-                Go Enterprise
+                Go Pro
               </Button>
             </div>
           </div>
@@ -524,38 +523,21 @@ export default function DashboardPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center text-cyan-400">
               <Sparkles className="h-5 w-5 mr-2 text-cyan-400" />
-              Upgrade to Enterprise Tier
+              Upgrade to Pro Tier
             </DialogTitle>
             <DialogDescription className="text-slate-400">
               Unlock unlimited secrets, sharing, SAML/OIDC SSO, CLI programmatic tokens, and automated client-side backups.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <Label htmlFor="seat-count">Number of seats / users</Label>
-              <Input
-                id="seat-count"
-                type="number"
-                min="1"
-                value={seatsToBuy}
-                onChange={(e) => setSeatsToBuy(Math.max(1, parseInt(e.target.value) || 1))}
-                className="bg-slate-950 border-slate-800 text-slate-100 focus-visible:ring-cyan-500 text-xs"
-                disabled={isCheckoutLoading}
-                required
-              />
-              <p className="text-[10px] text-slate-500">
-                You will be billed per user seat on a recurring monthly/yearly cycle.
-              </p>
-            </div>
-            
             <div className="bg-slate-950/60 p-4 border border-cyan-500/10 rounded space-y-2">
               <div className="flex justify-between text-xs">
-                <span className="text-slate-400">Enterprise Pricing:</span>
-                <span className="text-slate-200 font-mono">₹400 / seat / month</span>
+                <span className="text-slate-400">Pro Plan Pricing:</span>
+                <span className="text-slate-200 font-mono">₹400 / month</span>
               </div>
               <div className="flex justify-between text-xs font-semibold border-t border-slate-800/60 pt-2">
                 <span className="text-slate-300">Total recurring amount:</span>
-                <span className="text-cyan-400 font-mono">₹{seatsToBuy * 400} / month</span>
+                <span className="text-cyan-400 font-mono">₹400 / month</span>
               </div>
             </div>
 

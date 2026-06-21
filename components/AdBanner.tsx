@@ -47,14 +47,14 @@ export default function AdBanner({ onUpgradeClick }: AdBannerProps) {
           <ShieldAlert className="h-6 w-6 text-amber-500 animate-pulse" />
           <h4 className="text-sm font-semibold text-amber-500">Ad Blocker Detected</h4>
           <p className="text-xs text-slate-400 max-w-md">
-            SecurePass uses privacy-respecting, developer-focused, cookie-free ads to cover hosting and development costs. Please consider whitelisting us or upgrading to Enterprise.
+            SecurePass uses privacy-respecting, developer-focused, cookie-free ads to cover hosting and development costs. Please consider whitelisting us or upgrading to Pro.
           </p>
           <Button 
             onClick={onUpgradeClick} 
             size="sm"
             className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-4 py-1"
           >
-            Upgrade to Enterprise
+            Upgrade to Pro
           </Button>
         </div>
       ) : (

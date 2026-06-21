@@ -51,12 +51,12 @@ RAZORPAY_WEBHOOK_SECRET=yourWebhookVerificationSecret
 2. Switch to **Test Mode** (top header toggle) for development.
 3. Navigate to **Subscriptions** -> **Plans** -> **Create Plan**.
 4. Fill in:
-   * **Plan Name**: `SecurePass Enterprise`
-   * **Description**: `Enterprise Tier Billing`
-   * **Billing Frequency**: `Monthly`
-   * **Price**: `₹400` (or custom price)
-5. Copy the generated Plan ID (e.g. `plan_L3hF8k9zPaXq`).
-6. Update this plan ID in `app/dashboard/page.tsx` line 168 (passed to the API request payload).
+    * **Plan Name**: `SecurePass Pro`
+    * **Description**: `Pro Tier Billing`
+    * **Billing Frequency**: `Monthly`
+    * **Price**: `₹400` (or custom price)
+ 5. Copy the generated Plan ID (e.g. `plan_L3hF8k9zPaXq`).
+ 6. Update this plan ID in `app/dashboard/page.tsx` (passed to the API request payload).
 
 ---
 

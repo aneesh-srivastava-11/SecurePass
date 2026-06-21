@@ -1,5 +1,5 @@
 -- 1. Create enum for user tier
-CREATE TYPE public.user_tier AS ENUM ('free', 'enterprise');
+CREATE TYPE public.user_tier AS ENUM ('free', 'pro');
 
 -- 2. Alter public.users table to add monetization fields
 ALTER TABLE public.users 
@@ -21,7 +21,7 @@ BEGIN
   IF v_tier = 'free' THEN
     SELECT COUNT(*) INTO v_count FROM public.secrets WHERE owner_id = NEW.owner_id;
     IF v_count >= 5 THEN
-      RAISE EXCEPTION 'Free tier limit reached: Maximum of 5 secrets allowed. Please upgrade to Enterprise.';
+      RAISE EXCEPTION 'Free tier limit reached: Maximum of 5 secrets allowed. Please upgrade to Pro.';
     END IF;
   END IF;
   
@@ -50,7 +50,7 @@ BEGIN
     SELECT COUNT(*) INTO v_shares_count FROM public.shares WHERE secret_id = NEW.secret_id;
     SELECT COUNT(*) INTO v_invites_count FROM public.pending_invites WHERE secret_id = NEW.secret_id;
     IF (v_shares_count + v_invites_count) >= 1 THEN
-      RAISE EXCEPTION 'Free tier limit reached: Maximum of 1 share/invite per secret allowed. Please upgrade to Enterprise.';
+      RAISE EXCEPTION 'Free tier limit reached: Maximum of 1 share/invite per secret allowed. Please upgrade to Pro.';
     END IF;
   END IF;
   
@@ -79,7 +79,7 @@ BEGIN
     SELECT COUNT(*) INTO v_shares_count FROM public.shares WHERE secret_id = NEW.secret_id;
     SELECT COUNT(*) INTO v_invites_count FROM public.pending_invites WHERE secret_id = NEW.secret_id;
     IF (v_shares_count + v_invites_count) >= 1 THEN
-      RAISE EXCEPTION 'Free tier limit reached: Maximum of 1 share/invite per secret allowed. Please upgrade to Enterprise.';
+      RAISE EXCEPTION 'Free tier limit reached: Maximum of 1 share/invite per secret allowed. Please upgrade to Pro.';
     END IF;
   END IF;
   

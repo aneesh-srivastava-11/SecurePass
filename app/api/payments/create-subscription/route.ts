@@ -8,11 +8,8 @@ export async function POST(req: Request) {
     if (session.errorResponse) return session.errorResponse;
     const { user } = session;
 
-    const { seats, planId } = await req.json();
-
-    if (!seats || seats < 1) {
-      return NextResponse.json({ error: 'At least 1 seat is required' }, { status: 400 });
-    }
+    const { planId } = await req.json();
+    const targetSeats = 1; // 1 person = 1 license
 
     const cleanEnv = (val: string | undefined): string => {
       if (!val) return '';
@@ -31,14 +28,14 @@ export async function POST(req: Request) {
       key_secret: keySecret,
     });
 
-    const targetPlanId = planId === 'plan_Enterprise_1' || !planId
-      ? cleanEnv(process.env.RAZORPAY_PLAN_ID || 'plan_Enterprise_1')
+    const targetPlanId = planId === 'plan_Pro_1' || !planId
+      ? cleanEnv(process.env.RAZORPAY_PLAN_ID || 'plan_Pro_1')
       : cleanEnv(planId);
 
     const subscription = await razorpay.subscriptions.create({
       plan_id: targetPlanId, 
       total_count: 12, // 12 billing cycles (recurring monthly/yearly)
-      quantity: seats,  // Number of purchased seats
+      quantity: targetSeats,  // Always 1 seat/license per subscription
       customer_notify: 1,
       notes: {
         userId: user.id,
