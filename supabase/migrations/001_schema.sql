@@ -8,10 +8,6 @@ CREATE TABLE public.users (
   public_key TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "users_read_all"     ON public.users FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "users_self_insert"  ON public.users FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "users_self_update"  ON public.users FOR UPDATE  USING (auth.uid() = id);
 
 -- ============================================================
 -- 2. SECRETS
@@ -24,13 +20,6 @@ CREATE TABLE public.secrets (
   encrypted_blob JSONB NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-ALTER TABLE public.secrets ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "secrets_owner_select"  ON public.secrets FOR SELECT USING (auth.uid() = owner_id);
-CREATE POLICY "secrets_shared_select" ON public.secrets FOR SELECT USING (
-  EXISTS (SELECT 1 FROM public.shares WHERE shares.secret_id = secrets.id AND shares.user_id = auth.uid())
-);
-CREATE POLICY "secrets_insert"  ON public.secrets FOR INSERT WITH CHECK (auth.uid() = owner_id);
-CREATE POLICY "secrets_delete"  ON public.secrets FOR DELETE  USING (auth.uid() = owner_id);
 
 -- ============================================================
 -- 3. SHARES
@@ -43,14 +32,6 @@ CREATE TABLE public.shares (
   encrypted_key JSONB NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, secret_id)
-);
-ALTER TABLE public.shares ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "shares_recipient_select" ON public.shares FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "shares_owner_insert" ON public.shares FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM public.secrets WHERE secrets.id = secret_id AND secrets.owner_id = auth.uid())
-);
-CREATE POLICY "shares_owner_delete" ON public.shares FOR DELETE USING (
-  EXISTS (SELECT 1 FROM public.secrets WHERE secrets.id = shares.secret_id AND secrets.owner_id = auth.uid())
 );
 
 -- ============================================================
@@ -66,14 +47,6 @@ CREATE TABLE public.audit_log (
   signature TEXT,     -- hex-encoded Ed25519 signature
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "audit_owner_select" ON public.audit_log FOR SELECT USING (
-  auth.uid() = user_id OR 
-  EXISTS (SELECT 1 FROM public.secrets WHERE secrets.id = audit_log.secret_id AND secrets.owner_id = auth.uid())
-);
-CREATE POLICY "audit_insert" ON public.audit_log FOR INSERT WITH CHECK (auth.uid() = user_id);
--- NO UPDATE or DELETE policies → true append-only
-
 -- ============================================================
 -- 5. PENDING INVITES
 -- ============================================================
@@ -86,6 +59,45 @@ CREATE TABLE public.pending_invites (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(email, secret_id)
 );
+
+-- ============================================================
+-- RLS POLICIES & SECURITY
+-- ============================================================
+
+-- users
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "users_read_all"     ON public.users FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "users_self_insert"  ON public.users FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "users_self_update"  ON public.users FOR UPDATE  USING (auth.uid() = id);
+
+-- secrets
+ALTER TABLE public.secrets ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "secrets_owner_select"  ON public.secrets FOR SELECT USING (auth.uid() = owner_id);
+CREATE POLICY "secrets_shared_select" ON public.secrets FOR SELECT USING (
+  EXISTS (SELECT 1 FROM public.shares WHERE shares.secret_id = secrets.id AND shares.user_id = auth.uid())
+);
+CREATE POLICY "secrets_insert"  ON public.secrets FOR INSERT WITH CHECK (auth.uid() = owner_id);
+CREATE POLICY "secrets_delete"  ON public.secrets FOR DELETE  USING (auth.uid() = owner_id);
+
+-- shares
+ALTER TABLE public.shares ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "shares_recipient_select" ON public.shares FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "shares_owner_insert" ON public.shares FOR INSERT WITH CHECK (
+  EXISTS (SELECT 1 FROM public.secrets WHERE secrets.id = secret_id AND secrets.owner_id = auth.uid())
+);
+CREATE POLICY "shares_owner_delete" ON public.shares FOR DELETE USING (
+  EXISTS (SELECT 1 FROM public.secrets WHERE secrets.id = shares.secret_id AND secrets.owner_id = auth.uid())
+);
+
+-- audit_log
+ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "audit_owner_select" ON public.audit_log FOR SELECT USING (
+  auth.uid() = user_id OR 
+  EXISTS (SELECT 1 FROM public.secrets WHERE secrets.id = audit_log.secret_id AND secrets.owner_id = auth.uid())
+);
+CREATE POLICY "audit_insert" ON public.audit_log FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- pending_invites
 ALTER TABLE public.pending_invites ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "invites_owner_select" ON public.pending_invites FOR SELECT USING (auth.uid() = invited_by);
 CREATE POLICY "invites_insert"       ON public.pending_invites FOR INSERT WITH CHECK (auth.uid() = invited_by);
@@ -100,10 +112,27 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
     CREATE PUBLICATION supabase_realtime;
   END IF;
-END $$;
 
-ALTER PUBLICATION supabase_realtime ADD TABLE public.shares;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.pending_invites;
+  -- Add public.shares if not already present
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_rel pr 
+    JOIN pg_publication p ON p.oid = pr.prpubid 
+    JOIN pg_class c ON c.oid = pr.prrelid 
+    WHERE p.pubname = 'supabase_realtime' AND c.relname = 'shares'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.shares;
+  END IF;
+
+  -- Add public.pending_invites if not already present
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_rel pr 
+    JOIN pg_publication p ON p.oid = pr.prpubid 
+    JOIN pg_class c ON c.oid = pr.prrelid 
+    WHERE p.pubname = 'supabase_realtime' AND c.relname = 'pending_invites'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.pending_invites;
+  END IF;
+END $$;
 
 -- ============================================================
 -- 7. PERFORMANCE INDICES
