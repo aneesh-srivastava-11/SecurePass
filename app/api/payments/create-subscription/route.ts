@@ -26,8 +26,12 @@ export async function POST(req: Request) {
       key_secret: keySecret,
     });
 
+    const targetPlanId = planId === 'plan_Enterprise_1' || !planId
+      ? (process.env.RAZORPAY_PLAN_ID || 'plan_Enterprise_1')
+      : planId;
+
     const subscription = await razorpay.subscriptions.create({
-      plan_id: planId || 'plan_Enterprise_1', // Target Plan configured in Razorpay Dashboard
+      plan_id: targetPlanId, 
       total_count: 12, // 12 billing cycles (recurring monthly/yearly)
       quantity: seats,  // Number of purchased seats
       customer_notify: 1,
@@ -43,6 +47,7 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error('Subscription Creation Error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to create subscription' }, { status: 500 });
+    const description = error.error?.description || error.description || error.message || 'Failed to create subscription';
+    return NextResponse.json({ error: description }, { status: 500 });
   }
 }
