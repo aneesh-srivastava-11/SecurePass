@@ -6,7 +6,12 @@ export async function POST(req: Request) {
   try {
     const body = await req.text();
     const signature = req.headers.get('x-razorpay-signature');
-    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    const cleanEnv = (val: string | undefined): string => {
+      if (!val) return '';
+      return val.trim().replace(/^["']|["']$/g, '');
+    };
+
+    const webhookSecret = cleanEnv(process.env.RAZORPAY_WEBHOOK_SECRET);
 
     if (!webhookSecret) {
       console.error('RAZORPAY_WEBHOOK_SECRET is not defined');

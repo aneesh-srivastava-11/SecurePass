@@ -14,8 +14,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'At least 1 seat is required' }, { status: 400 });
     }
 
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const cleanEnv = (val: string | undefined): string => {
+      if (!val) return '';
+      return val.trim().replace(/^["']|["']$/g, '');
+    };
+
+    const keyId = cleanEnv(process.env.RAZORPAY_KEY_ID);
+    const keySecret = cleanEnv(process.env.RAZORPAY_KEY_SECRET);
 
     if (!keyId || !keySecret) {
       return NextResponse.json({ error: 'Razorpay keys not configured on server' }, { status: 500 });
@@ -27,8 +32,8 @@ export async function POST(req: Request) {
     });
 
     const targetPlanId = planId === 'plan_Enterprise_1' || !planId
-      ? (process.env.RAZORPAY_PLAN_ID || 'plan_Enterprise_1')
-      : planId;
+      ? cleanEnv(process.env.RAZORPAY_PLAN_ID || 'plan_Enterprise_1')
+      : cleanEnv(planId);
 
     const subscription = await razorpay.subscriptions.create({
       plan_id: targetPlanId, 
