@@ -60,6 +60,9 @@ export async function POST(
 
     if (dbError) {
       console.error('Error sharing secret via transaction:', dbError);
+      if (dbError?.message?.includes('limit reached')) {
+        return NextResponse.json({ error: dbError.message }, { status: 403 });
+      }
       return NextResponse.json({ error: 'Database transaction failed (could be already shared)' }, { status: 500 });
     }
 

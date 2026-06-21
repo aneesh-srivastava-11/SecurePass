@@ -17,6 +17,7 @@ import SecretForm from '@/components/SecretForm';
 import SecretCard from '@/components/SecretCard';
 import KeyStatusBanner from '@/components/KeyStatusBanner';
 import KeyExportModal from '@/components/KeyExportModal';
+import AdBanner from '@/components/AdBanner';
 
 import type { DashboardSecret } from '@/lib/types';
 import type { EncryptedBackup } from '@/lib/crypto';
@@ -33,6 +34,12 @@ export default function DashboardPage() {
   const [pendingInvites, setPendingInvites] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Payments State
+  const [profile, setProfile] = useState<any>(null);
+  const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);
+  const [seatsToBuy, setSeatsToBuy] = useState(1);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+
   // Restore Modal State
   const [isRestoreOpen, setIsRestoreOpen] = useState(false);
   const [restorePassphrase, setRestorePassphrase] = useState('');
@@ -48,6 +55,13 @@ export default function DashboardPage() {
         return;
       }
       setUser(currentUser);
+
+      // Fetch user profile to check tier/seats
+      const profileRes = await fetch('/api/user');
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        setProfile(profileData.profile);
+      }
 
       // 2. Check if local P-256 keypair is present
       const keyExists = await hasKeypair();
@@ -142,6 +156,80 @@ export default function DashboardPage() {
       clearInterval(pollInterval);
     };
   }, []);
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if ((window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleCheckout = async () => {
+    if (!user) return;
+    setIsCheckoutLoading(true);
+
+    try {
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        toast.error('Razorpay SDK failed to load. Are you offline?');
+        setIsCheckoutLoading(false);
+        return;
+      }
+
+      const res = await fetch('/api/payments/create-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          seats: seatsToBuy,
+          planId: 'plan_Enterprise_1',
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to initialize subscription');
+      }
+
+      const data = await res.json();
+
+      const options = {
+        key: data.keyId,
+        subscription_id: data.subscriptionId,
+        name: 'SecurePass Enterprise',
+        description: `Subscription for ${seatsToBuy} seats`,
+        handler: async function (response: any) {
+          toast.success('Subscription authorized successfully! Updating tier...', { duration: 5000 });
+          setIsUpgradeOpen(false);
+          // Wait briefly for webhook database trigger to fire, then refresh
+          setTimeout(() => {
+            fetchDashboardData();
+          }, 2000);
+        },
+        prefill: {
+          email: user.email,
+        },
+        theme: {
+          color: '#06b6d4',
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Payment initiation failed');
+    } finally {
+      setIsCheckoutLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -239,6 +327,24 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="flex items-center space-x-3">
+            {profile && (
+              <span className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded ${
+                profile.tier === 'enterprise' 
+                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' 
+                  : 'bg-slate-800 text-slate-400 border border-slate-700'
+              }`}>
+                {profile.tier} tier {profile.tier === 'enterprise' && `(${profile.seats} seats)`}
+              </span>
+            )}
+            {profile?.tier === 'free' && (
+              <Button
+                onClick={() => setIsUpgradeOpen(true)}
+                variant="outline"
+                className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 text-xs h-7 px-2.5"
+              >
+                Upgrade
+              </Button>
+            )}
             {user && user.email && <KeyExportModal email={user.email} />}
             <Button
               onClick={handleLogout}
@@ -270,6 +376,34 @@ export default function DashboardPage() {
           </div>
           {hasKey && <SecretForm onSuccess={fetchDashboardData} />}
         </div>
+
+        {profile?.tier === 'free' && (
+          <div className="mb-6 p-4 rounded-xl border border-slate-900 bg-slate-950/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-200">Free Tier Usage</h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Up to 5 secrets and 1 share per secret are supported on the Free tier.
+              </p>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="text-right">
+                <span className="text-xs text-slate-400">Secrets Used:</span>
+                <span className="ml-1.5 text-sm font-mono text-cyan-400">{ownedSecrets.length} / 5</span>
+              </div>
+              <Button
+                onClick={() => setIsUpgradeOpen(true)}
+                size="sm"
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-slate-950 font-semibold"
+              >
+                Go Enterprise
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {profile?.tier === 'free' && (
+          <AdBanner onUpgradeClick={() => setIsUpgradeOpen(true)} />
+        )}
 
         {/* Main Sections */}
         <div className="space-y-8">
@@ -397,6 +531,68 @@ export default function DashboardPage() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upgrade Billing Modal */}
+      <Dialog open={isUpgradeOpen} onOpenChange={setIsUpgradeOpen}>
+        <DialogContent className="border-slate-800 bg-slate-900 text-slate-100 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-cyan-400">
+              <Sparkles className="h-5 w-5 mr-2 text-cyan-400" />
+              Upgrade to Enterprise Tier
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Unlock unlimited secrets, sharing, SAML/OIDC SSO, CLI programmatic tokens, and automated client-side backups.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="seat-count">Number of seats / users</Label>
+              <Input
+                id="seat-count"
+                type="number"
+                min="1"
+                value={seatsToBuy}
+                onChange={(e) => setSeatsToBuy(Math.max(1, parseInt(e.target.value) || 1))}
+                className="bg-slate-950 border-slate-800 text-slate-100 focus-visible:ring-cyan-500 text-xs"
+                disabled={isCheckoutLoading}
+                required
+              />
+              <p className="text-[10px] text-slate-500">
+                You will be billed per user seat on a recurring monthly/yearly cycle.
+              </p>
+            </div>
+            
+            <div className="bg-slate-950/60 p-4 border border-cyan-500/10 rounded space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-400">Enterprise Pricing:</span>
+                <span className="text-slate-200 font-mono">₹400 / seat / month</span>
+              </div>
+              <div className="flex justify-between text-xs font-semibold border-t border-slate-800/60 pt-2">
+                <span className="text-slate-300">Total recurring amount:</span>
+                <span className="text-cyan-400 font-mono">₹{seatsToBuy * 400} / month</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="ghost"
+                className="text-slate-400 hover:text-slate-300 hover:bg-slate-800 text-xs"
+                onClick={() => setIsUpgradeOpen(false)}
+                disabled={isCheckoutLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCheckout}
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-slate-950 font-semibold text-xs"
+                disabled={isCheckoutLoading}
+              >
+                {isCheckoutLoading ? 'Redirecting to Razorpay...' : 'Checkout with Razorpay'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -107,6 +107,9 @@ export async function POST(request: Request) {
 
     if (dbError || !secret) {
       console.error('Error creating secret via transaction:', dbError);
+      if (dbError?.message?.includes('limit reached')) {
+        return NextResponse.json({ error: dbError.message }, { status: 403 });
+      }
       return NextResponse.json({ error: 'Database transaction failed' }, { status: 500 });
     }
 

@@ -70,6 +70,9 @@ export async function POST(request: Request) {
 
     if (dbError) {
       console.error('Error creating pending invite:', dbError);
+      if (dbError?.message?.includes('limit reached')) {
+        return NextResponse.json({ error: dbError.message }, { status: 403 });
+      }
       return NextResponse.json({ error: 'Failed to record invitation in database' }, { status: 500 });
     }
 
