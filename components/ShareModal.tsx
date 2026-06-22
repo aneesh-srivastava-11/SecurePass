@@ -13,9 +13,10 @@ interface ShareModalProps {
   secretName: string;
   encryptedBlob: ECIESPayload;
   onSuccess: () => void;
+  hasKey: boolean;
 }
 
-export default function ShareModal({ secretId, secretName, encryptedBlob, onSuccess }: ShareModalProps) {
+export default function ShareModal({ secretId, secretName, encryptedBlob, onSuccess, hasKey }: ShareModalProps) {
   const [email, setEmail] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -123,7 +124,16 @@ export default function ShareModal({ secretId, secretName, encryptedBlob, onSucc
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger render={
-        <Button variant="outline" className="border-slate-800 hover:bg-slate-800 text-slate-200">
+        <Button 
+          variant="outline" 
+          className="border-slate-800 hover:bg-slate-800 text-slate-200"
+          onClick={(e) => {
+            if (!hasKey) {
+              e.preventDefault();
+              toast.error('Vault private key is missing. Please restore your key pair under Settings to share secrets.');
+            }
+          }}
+        >
           <Share2 className="h-4 w-4 mr-2" />
           Share Secret
         </Button>

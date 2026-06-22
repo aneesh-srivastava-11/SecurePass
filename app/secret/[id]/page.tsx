@@ -292,6 +292,7 @@ export default function SecretDetailPage() {
                   secretName={secret.name}
                   encryptedBlob={secret.encrypted_blob}
                   onSuccess={fetchSecretDetails}
+                  hasKey={hasKey}
                 />
               </>
             )}

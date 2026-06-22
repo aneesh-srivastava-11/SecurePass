@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/supabase/server';
 import { signAuditEntry } from '@/lib/signing';
+import { getCleanIp } from '@/lib/ip';
 
 export async function DELETE(
   request: Request,
@@ -28,7 +29,7 @@ export async function DELETE(
     }
 
     // 2. Sign audit log entry for revocation (deletion)
-    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || '127.0.0.1';
+    const ipAddress = getCleanIp(request);
     const timestamp = new Date().toISOString();
     
     const auditPayload = {
