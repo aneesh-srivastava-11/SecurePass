@@ -47,6 +47,9 @@ export default function LoginPage() {
       }
 
       // Check if browser has the vault keypair
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('activeUserEmail', email.trim().toLowerCase());
+      }
       const keyExists = await hasKeypair();
       if (keyExists) {
         toast.success('Logged in successfully!');
@@ -95,6 +98,9 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('activeUserEmail', email.trim().toLowerCase());
+      }
       await importBackupKey(backupFile, passphrase);
       toast.success('Vault key restored successfully!');
       router.push('/dashboard');

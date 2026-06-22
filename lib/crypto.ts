@@ -11,6 +11,16 @@ async function getDB() {
   });
 }
 
+function getStorageKey(baseKey: 'privateKey' | 'publicKey'): string {
+  if (typeof window !== 'undefined') {
+    const email = localStorage.getItem('activeUserEmail');
+    if (email) {
+      return `${email.trim().toLowerCase()}:${baseKey}`;
+    }
+  }
+  return baseKey;
+}
+
 export interface ECIESPayload {
   ephemeralPublicKey: string; // base64 SPKI
   iv: string;                 // base64 12-byte IV
@@ -112,8 +122,10 @@ export async function generateKeypair(passphrase: string): Promise<{ publicKeyBa
   );
 
   const db = await getDB();
-  await db.put(STORE, nonExtractablePrivateKey, 'privateKey');
-  await db.put(STORE, keyPair.publicKey, 'publicKey');
+  const privKeyName = getStorageKey('privateKey');
+  const pubKeyName = getStorageKey('publicKey');
+  await db.put(STORE, nonExtractablePrivateKey, privKeyName);
+  await db.put(STORE, keyPair.publicKey, pubKeyName);
 
   return {
     publicKeyBase64,
@@ -155,8 +167,10 @@ export async function importBackupKey(backup: EncryptedBackup, passphrase: strin
   const publicKey = await importPublicKey(backup.publicKey);
 
   const db = await getDB();
-  await db.put(STORE, privateKey, 'privateKey');
-  await db.put(STORE, publicKey, 'publicKey');
+  const privKeyName = getStorageKey('privateKey');
+  const pubKeyName = getStorageKey('publicKey');
+  await db.put(STORE, privateKey, privKeyName);
+  await db.put(STORE, publicKey, pubKeyName);
 
   return {
     publicKeyBase64: backup.publicKey,
@@ -166,28 +180,34 @@ export async function importBackupKey(backup: EncryptedBackup, passphrase: strin
 // Check if keypair exists in IndexedDB
 export async function hasKeypair(): Promise<boolean> {
   const db = await getDB();
-  const pk = await db.get(STORE, 'privateKey');
-  const pub = await db.get(STORE, 'publicKey');
+  const privKeyName = getStorageKey('privateKey');
+  const pubKeyName = getStorageKey('publicKey');
+  const pk = await db.get(STORE, privKeyName);
+  const pub = await db.get(STORE, pubKeyName);
   return !!(pk && pub);
 }
 
 // Clear keypair from IndexedDB
 export async function clearKeypair(): Promise<void> {
   const db = await getDB();
-  await db.delete(STORE, 'privateKey');
-  await db.delete(STORE, 'publicKey');
+  const privKeyName = getStorageKey('privateKey');
+  const pubKeyName = getStorageKey('publicKey');
+  await db.delete(STORE, privKeyName);
+  await db.delete(STORE, pubKeyName);
 }
 
 export async function getPrivateKey(): Promise<CryptoKey> {
   const db = await getDB();
-  const key = await db.get(STORE, 'privateKey');
+  const privKeyName = getStorageKey('privateKey');
+  const key = await db.get(STORE, privKeyName);
   if (!key) throw new Error('No private key found in this browser.');
   return key;
 }
 
 export async function exportPublicKey(): Promise<string> {
   const db = await getDB();
-  const pubKey = await db.get(STORE, 'publicKey') as CryptoKey;
+  const pubKeyName = getStorageKey('publicKey');
+  const pubKey = await db.get(STORE, pubKeyName) as CryptoKey;
   if (!pubKey) throw new Error('No public key found in this browser.');
   const spki = await crypto.subtle.exportKey('spki', pubKey);
   return arrayBufferToBase64(spki);

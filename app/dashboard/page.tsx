@@ -82,6 +82,9 @@ export default function DashboardPage() {
         return;
       }
       setUser(currentUser);
+      if (typeof window !== 'undefined' && currentUser.email) {
+        localStorage.setItem('activeUserEmail', currentUser.email.trim().toLowerCase());
+      }
 
       // Fetch user profile to check tier/seats
       const profileRes = await fetch('/api/user');
@@ -130,7 +133,7 @@ export default function DashboardPage() {
       if (!currentUser) return;
 
       const channel = supabase
-        .channel('dashboard-shares')
+        .channel(`dashboard-shares-${currentUser.id}-${Math.random().toString(36).substring(2, 9)}`)
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'shares', filter: `user_id=eq.${currentUser.id}` },
@@ -289,6 +292,9 @@ export default function DashboardPage() {
 
     setIsRestoring(true);
     try {
+      if (typeof window !== 'undefined' && user?.email) {
+        localStorage.setItem('activeUserEmail', user.email.trim().toLowerCase());
+      }
       await importBackupKey(backupFile, restorePassphrase);
       toast.success('Vault key restored successfully!');
       setHasKey(true);
@@ -340,12 +346,12 @@ export default function DashboardPage() {
       <aside className="w-64 border-r border-zinc-900 bg-zinc-950 flex flex-col justify-between select-none">
         <div className="p-6 space-y-6">
           {/* Logo */}
-          <div className="flex items-center space-x-2.5">
+          <Link href="/" className="flex items-center space-x-2.5 hover:opacity-80 transition-opacity">
             <div className="p-1.5 bg-cyan-500/10 text-cyan-400 rounded-lg border border-cyan-500/20">
               <Lock className="h-4.5 w-4.5" />
             </div>
             <span className="font-bold tracking-tight text-zinc-200">SecurePass</span>
-          </div>
+          </Link>
 
           {/* Navigation Items */}
           <nav className="space-y-1">

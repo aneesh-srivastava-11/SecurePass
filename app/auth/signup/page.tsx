@@ -63,6 +63,9 @@ export default function SignupPage() {
       }
 
       // 2. Generate browser P-256 keypair & encrypted backup
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('activeUserEmail', email.trim().toLowerCase());
+      }
       const { publicKeyBase64, backup } = await generateKeypair(passphrase);
       setBackupData(backup);
 

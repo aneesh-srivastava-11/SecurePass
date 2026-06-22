@@ -56,6 +56,9 @@ export default function SecretDetailPage() {
         return;
       }
       setUser(currentUser);
+      if (typeof window !== 'undefined' && currentUser.email) {
+        localStorage.setItem('activeUserEmail', currentUser.email.trim().toLowerCase());
+      }
 
       // 2. Check keys
       const keyExists = await hasKeypair();
@@ -106,7 +109,7 @@ export default function SecretDetailPage() {
       if (!currentUser) return;
 
       const channel = supabase
-        .channel(`secret-revocation-${secretId}`)
+        .channel(`secret-revocation-${secretId}-${currentUser.id}-${Math.random().toString(36).substring(2, 9)}`)
         .on(
           'postgres_changes',
           { event: 'DELETE', schema: 'public', table: 'shares', filter: `secret_id=eq.${secretId}` },
